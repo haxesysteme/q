@@ -1666,6 +1666,44 @@ Promise.prototype.any = function () {
 };
 
 /**
+ * A combination of q.allSettled and q.all. It works like q.allSettled in the sense that
+ * the promise is not rejected until all promises have finished and like q.all in that it
+ * is rejected with the first encountered rejection and resolves with an array of "values".
+ *
+ * The rejection is always an Error.
+ * @param promises
+ * @returns {*|promise}
+ */
+Q.allDone = allDone;
+
+function allDone(promises) {
+    var deferred = Q.defer();
+    Q.allSettled(promises)
+        .then(function (results) {
+            var i,
+                values = [];
+            for (i = 0; i < results.length; i += 1) {
+                if (results[i].state === 'rejected') {
+                    deferred.reject(new Error(results[i].reason));
+                    return;
+                } else if (results[i].state === 'fulfilled') {
+                    values.push(results[i].value);
+                } else {
+                    deferred.reject(new Error('Unexpected promise state ' + results[i].state));
+                    return;
+                }
+            }
+            deferred.resolve(values);
+        });
+
+    return deferred.promise;
+};
+
+Promise.prototype.allDone = function() {
+    return allDone(this);
+};
+
+/**
  * Waits for all promises to be settled, either fulfilled or
  * rejected.  This is distinct from `all` since that would stop
  * waiting at the first rejection.  The promise returned by
