@@ -1684,7 +1684,7 @@ function allDone(promises) {
                 values = [];
             for (i = 0; i < results.length; i += 1) {
                 if (results[i].state === 'rejected') {
-                    deferred.reject(new Error(results[i].reason));
+                    deferred.reject(results[i].reason);
                     return;
                 } else if (results[i].state === 'fulfilled') {
                     values.push(results[i].value);
